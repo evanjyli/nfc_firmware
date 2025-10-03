@@ -278,6 +278,7 @@ extern uint8_t TRF79xxA_getRxBytesReceived(void);
 extern uint8_t * TRF79xxA_getTrfBuffer(void);
 extern uint8_t TRF79xxA_getIsoControlValue(void);
 extern bool TRF79xxA_checkExternalRfField(void);
+extern bool TRF79xxA_TileLink_checkExternalRfField(void);
 
 //===============================================================
 

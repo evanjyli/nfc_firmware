@@ -1272,6 +1272,27 @@ bool TRF79xxA_checkExternalRfField(void)
 	return bExtFieldOn;
 }
 
+bool TRF79xxA_TileLink_checkExternalRfField(void)
+{
+	bool bExtFieldOn;
+	uint8_t ui8Value;
+
+	TRF79xxA_writeRegister(TRF79XXA_CHIP_STATUS_CONTROL, 0x42);
+	TRF79xxA_sendDirectCommand(TRF79XXA_TEST_EXTERNAL_RF_CMD);
+	__delay_cycles(400); 		//	Delay for 50uS
+	ui8Value = TRF79xxA_readRegister(TRF79XXA_RSSI_LEVELS);
+
+	if ((ui8Value & 0x07) > 1)	// Check for RF field bit and update variable
+	{
+		bExtFieldOn = true;
+	}
+	else
+	{
+		bExtFieldOn = false;
+	}
+
+	return bExtFieldOn;
+}
 //===============================================================
 //
 //! TRF79xxA_timerHandler - Handler for assigned MCU Timer

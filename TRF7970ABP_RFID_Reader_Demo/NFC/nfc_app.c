@@ -90,6 +90,10 @@ void NFC_findTag(void)
 								// Can supports tags from 256bit tags (TI HF-I Std/Pro) to 64kbit (STM M24LR64) tags
 #endif
 
+#ifdef ENABLE_TILELINK
+	NFC_appTilelink();
+#endif
+
 #ifdef ENABLE_STANDALONE		// No card detected
 	LED_14443A_OFF;
 	LED_14443B_OFF;
@@ -434,7 +438,7 @@ NFC_appTilelink(void)
 	uint8_t ui8AddressedFlag = 0x00;
 
 #if (TRF79xxA_VERSION == 70)
-	if (TRF79xxA_checkExternalRfField() == true)
+	if (TRF79xxA_TileLink_checkExternalRfField() == true)
 	{
 		return STATUS_FAIL;
 	}
@@ -449,6 +453,7 @@ NFC_appTilelink(void)
 
 	ISO15693_resetTagCount();
 
+	//TODO: Change the framing to Tilelink framing
 	ui8TagFound = ISO15693_sendSingleSlotInventory();							// Send a single slot inventory request to try and detect a single ISO15693 Tag
 
 	// Inventory failed - search with full anticollision routine
@@ -456,6 +461,7 @@ NFC_appTilelink(void)
 	{
 		ISO15693_resetRecursionCount();			// Clear the recursion counter
 		MCU_delayMillisecond(5);				// Delay before issuing the anticollision commmand
+		//TODO: Change this to Tilelink anticollision
 		ui8TagFound = ISO15693_runAnticollision(0x06, 0x00, 0x00);		// Send 16 Slot Inventory request with no mask length and no AFI
 		ui8AddressedFlag = 0x20; 			// Collision occurred, send addressed commands
 	}
@@ -477,6 +483,7 @@ NFC_appTilelink(void)
 		}
 		else
 		{
+			//TODO: Recurse through functions and change framing to Tilelink
 			NFC_appIso15693ReadTag(0x02 | ui8AddressedFlag);					// Read an ISO15693 tag
 //			NFC_appIso15693ReadExtendedTag(0x0A | ui8AddressedFlag);			// Read an ISO15693 tag which has extended protocol implemented
 //			ISO15693_sendReadMultipleBlocks(0x22,0x00,25);						// Example to read 25 blocks starting @ Block 0 from a tag which supports Read Multiple Block command

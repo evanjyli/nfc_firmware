@@ -66,6 +66,68 @@ static uint8_t g_pui8AnticollisionMaskBuffer[8];
 static uint8_t g_ui8TagDetectedCount;
 static uint8_t g_ui8RecursionCount;
 
+uint8_t ISO15693_tilelink_sendSingleSlotInventory(void)
+{
+	uint8_t ui8Offset = 0;
+	uint8_t ui8LoopCount = 0;
+	uint8_t ui8Status = STATUS_FAIL;
+
+	g_pui8TrfBuffer[ui8Offset++] = 0x8F;		// Reset FIFO
+	g_pui8TrfBuffer[ui8Offset++] = 0x91;		// Send with CRC
+	g_pui8TrfBuffer[ui8Offset++] = 0x3D;		// Write Continuous
+	g_pui8TrfBuffer[ui8Offset++] = 0x00;		// Length of packet in bytes - upper and middle nibbles of transmit byte length
+	g_pui8TrfBuffer[ui8Offset++] = 0x30;		// Length of packet in bytes - lower and broken nibbles of transmit byte length
+
+	TRF79xxA_writeRaw(&g_pui8TrfBuffer[0], ui8Offset);		// Issue the ISO15693 Inventory Command
+
+	g_sTrfStatus = TRF79xxA_waitRxData(5,15);			// 5 millisecond TX timeout, 15 millisecond RX timeout
+
+	if (g_sTrfStatus == RX_COMPLETE)		// If data has been received
+	{
+		if (g_pui8TrfBuffer[0] == 0x00)		// Confirm "no error" in response flags byte
+		{
+			ui8Status = STATUS_SUCCESS;
+
+			// UID Starts at the 3rd received bit (1st is flags and 2nd is DSFID)
+			for (ui8LoopCount = 2; ui8LoopCount < 10; ui8LoopCount++)
+			{
+				g_pui8Iso15693UId[ui8LoopCount-2] = g_pui8TrfBuffer[ui8LoopCount];	// Store UID into a Buffer
+			}
+
+			g_ui8TagDetectedCount = 1;
+#ifdef ENABLE_HOST
+			// Print out UID to UART Host
+			UART_putNewLine();
+			UART_sendCString("ISO15693 UID: ");
+			UART_putChar('[');
+			for (ui8LoopCount = 0; ui8LoopCount < 8; ui8LoopCount++)
+			{
+				UART_putByte(g_pui8Iso15693UId[7-ui8LoopCount]);		// Send UID to host
+			}
+			UART_putChar(']');
+			UART_putNewLine();
+#endif
+		}
+	}
+	else
+	{
+		ui8Status = STATUS_FAIL;
+	}
+
+#ifdef ENABLE_STANDALONE
+	if (ui8Status == STATUS_SUCCESS)
+	{
+		LED_15693_ON;		// LEDs indicate detected ISO15693 tag
+	}
+	else
+	{
+		LED_15693_OFF;
+	}
+#endif
+
+	return ui8Status;
+}
+
 //*****************************************************************************
 //
 //! ISO15693_sendSingleSlotInventory - Issue a single slot Inventory command
