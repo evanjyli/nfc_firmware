@@ -82,6 +82,7 @@ uint8_t ISO15693_sendReadSingleBlock(uint8_t ui8ReqFlag, uint8_t ui8BlockNumber)
 uint8_t ISO15693_sendReadMultipleBlocks(uint8_t ui8ReqFlag, uint8_t ui8FirstBlock, uint8_t ui8NumberOfBlocks);
 uint8_t ISO15693_sendReadSingleBlockExtended(uint8_t ui8ReqFlag, uint16_t ui16StartBlock);
 uint8_t ISO15693_sendWriteSingleBlock(uint8_t ui8ReqFlag, uint8_t ui8BlockNumber, uint8_t ui8BlockSize, uint8_t * pui8BlockData);
+void ISO15693_sendCustomPacket(uint8_t * pData, uint8_t ui8Length);
 
 uint8_t * ISO15693_getUid(void);
 uint8_t ISO15693_getTagCount(void);

@@ -1145,6 +1145,53 @@ uint8_t ISO15693_sendWriteSingleBlock(uint8_t ui8ReqFlag, uint8_t ui8BlockNumber
 
 //*****************************************************************************
 //
+//! ISO15693_sendCustomPacket - Transmit a custom ISO15693 packet
+//!
+//! \param pData is the pointer to the data array to be transmitted.
+//! \param ui8Length is the number of bytes in the data array.
+//!
+//! This function transmits a packet with standard ISO15693 encoding and
+//! CRC appended by the TRF7970A.
+//!
+//*****************************************************************************
+void ISO15693_sendCustomPacket(uint8_t * pData, uint8_t ui8Length)
+{
+    uint8_t ui8Offset = 0;
+    uint8_t ui8i = 0;
+
+    // 1. Reset FIFO (0x0F) with Command Bit set (0x80) -> 0x8F
+    g_pui8TrfBuffer[ui8Offset++] = 0x8F;
+
+    // 2. Transmit with CRC (0x11) with Command Bit set (0x80) -> 0x91
+    //    This tells the TRF7970A to automatically calculate and append the CRC.
+    g_pui8TrfBuffer[ui8Offset++] = 0x91;
+
+    // 3. Write Continuous (0x20) + Continuous Mode (0x10) to Register 0x1D (0x0D) -> 0x3D
+    //    Refer to Datasheet Section 6.10.4: Data Transmission From MCU to TRF7970A
+    g_pui8TrfBuffer[ui8Offset++] = 0x3D;
+
+    // 4. Packet Length Calculation
+    //    Register 0x1D: TX Length Byte 1 (Upper & Middle Nibbles)
+    g_pui8TrfBuffer[ui8Offset++] = (uint8_t) (ui8Length >> 8);
+    //    Register 0x1E: TX Length Byte 2 (Lower Nibble & Broken Bytes)
+    //    Shift length left by 4 to occupy upper nibble. Lower nibble 0 indicates complete bytes.
+    g_pui8TrfBuffer[ui8Offset++] = (uint8_t) (ui8Length << 4);
+
+    // 5. Load Data into FIFO
+    for (ui8i = 0; ui8i < ui8Length; ui8i++)
+    {
+        g_pui8TrfBuffer[ui8Offset++] = pData[ui8i];
+    }
+
+    // 6. Send the packet to TRF7970A via SPI
+    TRF79xxA_writeRaw(&g_pui8TrfBuffer[0], ui8Offset);
+
+    // 7. Wait for Transmission to Complete (TX Interrupt)
+    TRF79xxA_waitTxIRQ(20); // Wait up to 10ms for TX complete
+}
+
+//*****************************************************************************
+//
 //! ISO15693_getUid - Fetches the ISO15693 Tag UID.
 //!
 //! \param ui8Index is the index for the ISO15693 UID array.

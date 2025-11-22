@@ -10,4 +10,5 @@
 	<connection value="common/targetdb/connections/TIMSP430-USB.xml"/>
 	<deviceFamily value="MSP430"/>
 	<isTargetManual value="false"/>
+	<activeTargetConfiguration value="targetConfigs/MSP430G2553.ccxml"/>
 </projectOptions>

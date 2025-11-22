@@ -99,70 +99,82 @@
 
 void main(void)
 {
-	uint8_t ui8VLOCalibCount;
+    uint8_t ui8VLOCalibCount = 0;
 
-//	TODO: Remove LED2 Jumper on G2 LaunchPad if using it, otherwise SPI will not work.
+    // Stop the Watchdog timer
+    WDTCTL = WDTPW + WDTHOLD;
 
-	// Stop the Watchdog timer,
- 	WDTCTL = WDTPW + WDTHOLD;
+    // Select DCO to be 8 MHz
+    MCU_initClock();
+    MCU_delayMillisecond(10);
 
-	// Select DCO to be 8 MHz
- 	MCU_initClock();
- 	MCU_delayMillisecond(10);
+    // Calibrate VLO
+    MCU_calculateVLOFreq();
 
- 	// Calibrate VLO
- 	MCU_calculateVLOFreq();
+    // Set the SPI SS high
+    SLAVE_SELECT_PORT_SET;
+    SLAVE_SELECT_HIGH;
 
-	// Set the SPI SS high
-	SLAVE_SELECT_PORT_SET;
-	SLAVE_SELECT_HIGH;
+    // 4ms delay per datasheet
+    MCU_delayMillisecond(4);
 
-	// Four millisecond delay between bringing SS high and then EN high per TRF7970A Datasheet
-	MCU_delayMillisecond(4);
+    // Enable TRF7970A
+    TRF_ENABLE_SET;
+    TRF_ENABLE;
 
-	// Set TRF Enable Pin high
-	TRF_ENABLE_SET;
-	TRF_ENABLE;
+    // Wait for system clock
+    MCU_delayMillisecond(5);
 
-	// Wait until TRF system clock started
-	MCU_delayMillisecond(5);
-
-	// Set up TRF initial settings
-	TRF79xxA_initialSettings();
-	TRF79xxA_setTrfPowerSetting(TRF79xxA_3V_FULL_POWER);
+    // Initial Settings
+    TRF79xxA_initialSettings();
+    TRF79xxA_setTrfPowerSetting(TRF79xxA_3V_FULL_POWER);
 
 #ifdef ENABLE_HOST
-	// Set up UART
-	UART_setup();
+    UART_setup();
 #endif
 
-	// Initialize all enabled technology layers
-	NFC_init();
+    NFC_init();
 
-	// Enable global interrupts
-	__bis_SR_register(GIE);
-
-	// Enable IRQ Pin
-	IRQ_ON;
+    // Enable interrupts
+    __bis_SR_register(GIE);
+    IRQ_ON;
 
 #ifdef ENABLE_HOST
-	UART_putIntroReaderMsg(RFID_READER_FW_VERSION, RFID_READER_FW_DATE);
+    UART_putIntroReaderMsg(RFID_READER_FW_VERSION, RFID_READER_FW_DATE);
 #endif
 
-	while(1)
-	{
-		// Poll for NFC tags
-		NFC_findTag();
+    // --- SETUP FOR ISO15693 TRANSMISSION ---
+    
+    // 1. Configure TRF7970A as ISO15693 Initiator (High Data Rate)
+    TRF79xxA_setupInitiator(0x02);
 
-		// VLO drifts with temperature and over time, so it must be periodically recalibrated
-		// Calibrate the VLO every 25 passes of the NFC polling routine
-		ui8VLOCalibCount++;
-		if (ui8VLOCalibCount == 25)
-		{
-			// Calibrate VLO
-			MCU_calculateVLOFreq();
-			// Reset Calibration Counter
-		 	ui8VLOCalibCount = 0;
-		}
-	}
+    // 2. Define the 27-byte packet based on the provided bitstream
+    //    Bitstream: 01111011 10111111 ... (Converted LSB first)
+    uint8_t testPacket_27Bytes[] = {
+        0xDE, 0xFD, 0xFD, 0xFD, 0xF7, 0xFD, 0xFD, 0xFD, 0xFD, 
+        0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xDF, 0xFD, 
+        0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD
+    };
+
+    while(1)
+    {
+        // 3. Transmit the 27-byte packet
+        ISO15693_sendCustomPacket(testPacket_27Bytes, sizeof(testPacket_27Bytes));
+
+        // 4. Optional LED blink to indicate transmission
+        LED_15693_ON;
+        MCU_delayMillisecond(20);
+        LED_15693_OFF;
+
+        // 5. Delay before next transmission
+        MCU_delayMillisecond(100);
+        
+        // Keep VLO calibration active
+        ui8VLOCalibCount++;
+        if (ui8VLOCalibCount == 25)
+        {
+            MCU_calculateVLOFreq();
+            ui8VLOCalibCount = 0;
+        }
+    }
 }
