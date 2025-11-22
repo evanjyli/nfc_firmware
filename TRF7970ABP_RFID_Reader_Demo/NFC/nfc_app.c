@@ -427,73 +427,73 @@ uint8_t NFC_appIso15693(void)
 	return STATUS_SUCCESS;
 }
 
-NFC_appTilelink(void)
-{
-#ifdef ENABLE_15693
-	uint8_t ui8TagFound = STATUS_FAIL;
-	uint8_t ui8AddressedFlag = 0x00;
-
-#if (TRF79xxA_VERSION == 70)
-	if (TRF79xxA_checkExternalRfField() == true)
-	{
-		return STATUS_FAIL;
-	}
-#endif
-
-	TRF79xxA_setupInitiator(0x42);		// Configure the TRF79xxA for ISO15693 @ High Bit Rate, One Subcarrier, 1 out of 4
-
-	// The VCD should wait at least 1 ms after it activated the
-	// powering field before sending the first request, to
-	// ensure that the VICCs are ready to receive it. (ISO15693-3)
-	MCU_delayMillisecond(20);
-
-	ISO15693_resetTagCount();
-
-	ui8TagFound = ISO15693_sendSingleSlotInventory();							// Send a single slot inventory request to try and detect a single ISO15693 Tag
-
-	// Inventory failed - search with full anticollision routine
-	if (ui8TagFound == STATUS_FAIL)
-	{
-		ISO15693_resetRecursionCount();			// Clear the recursion counter
-		MCU_delayMillisecond(5);				// Delay before issuing the anticollision commmand
-		ui8TagFound = ISO15693_runAnticollision(0x06, 0x00, 0x00);		// Send 16 Slot Inventory request with no mask length and no AFI
-		ui8AddressedFlag = 0x20; 			// Collision occurred, send addressed commands
-	}
-
-	if (ui8TagFound == STATUS_SUCCESS)
-	{
-		if (ISO15693_getTagCount() > 1)
-		{
-#ifdef ENABLE_HOST
-			UART_putNewLine();
-			UART_sendCString("Multiple ISO15693 Tags Found");
-			UART_putNewLine();
-			UART_sendCString("# of Tags Detected: ");
-			UART_putByteDecimalValue(ISO15693_getTagCount());
-			UART_putNewLine();
-			UART_sendCString("Place only 1 tag in RF Field to read data");
-			UART_putNewLine();
-#endif
-		}
-		else
-		{
-			NFC_appIso15693ReadTag(0x02 | ui8AddressedFlag);					// Read an ISO15693 tag
-//			NFC_appIso15693ReadExtendedTag(0x0A | ui8AddressedFlag);			// Read an ISO15693 tag which has extended protocol implemented
-//			ISO15693_sendReadMultipleBlocks(0x22,0x00,25);						// Example to read 25 blocks starting @ Block 0 from a tag which supports Read Multiple Block command
-		}
-	}
-	else
-	{
-#ifdef ENABLE_STANDALONE		// No card detected
-		LED_15693_OFF;
-#endif
-	}
-
-	TRF79xxA_turnRfOff();						// Turn off RF field once done reading the tag(s)
-#endif
-
-	return STATUS_SUCCESS;
-}
+//NFC_appTilelink(void)
+//{
+//#ifdef ENABLE_15693
+//	uint8_t ui8TagFound = STATUS_FAIL;
+//	uint8_t ui8AddressedFlag = 0x00;
+//
+//#if (TRF79xxA_VERSION == 70)
+//	if (TRF79xxA_checkExternalRfField() == true)
+//	{
+//		return STATUS_FAIL;
+//	}
+//#endif
+//
+//	TRF79xxA_setupInitiator(0x42);		// Configure the TRF79xxA for ISO15693 @ High Bit Rate, One Subcarrier, 1 out of 4
+//
+//	// The VCD should wait at least 1 ms after it activated the
+//	// powering field before sending the first request, to
+//	// ensure that the VICCs are ready to receive it. (ISO15693-3)
+//	MCU_delayMillisecond(20);
+//
+//	ISO15693_resetTagCount();
+//
+//	ui8TagFound = ISO15693_sendSingleSlotInventory();							// Send a single slot inventory request to try and detect a single ISO15693 Tag
+//
+//	// Inventory failed - search with full anticollision routine
+//	if (ui8TagFound == STATUS_FAIL)
+//	{
+//		ISO15693_resetRecursionCount();			// Clear the recursion counter
+//		MCU_delayMillisecond(5);				// Delay before issuing the anticollision commmand
+//		ui8TagFound = ISO15693_runAnticollision(0x06, 0x00, 0x00);		// Send 16 Slot Inventory request with no mask length and no AFI
+//		ui8AddressedFlag = 0x20; 			// Collision occurred, send addressed commands
+//	}
+//
+//	if (ui8TagFound == STATUS_SUCCESS)
+//	{
+//		if (ISO15693_getTagCount() > 1)
+//		{
+//#ifdef ENABLE_HOST
+//			UART_putNewLine();
+//			UART_sendCString("Multiple ISO15693 Tags Found");
+//			UART_putNewLine();
+//			UART_sendCString("# of Tags Detected: ");
+//			UART_putByteDecimalValue(ISO15693_getTagCount());
+//			UART_putNewLine();
+//			UART_sendCString("Place only 1 tag in RF Field to read data");
+//			UART_putNewLine();
+//#endif
+//		}
+//		else
+//		{
+//			NFC_appIso15693ReadTag(0x02 | ui8AddressedFlag);					// Read an ISO15693 tag
+////			NFC_appIso15693ReadExtendedTag(0x0A | ui8AddressedFlag);			// Read an ISO15693 tag which has extended protocol implemented
+////			ISO15693_sendReadMultipleBlocks(0x22,0x00,25);						// Example to read 25 blocks starting @ Block 0 from a tag which supports Read Multiple Block command
+//		}
+//	}
+//	else
+//	{
+//#ifdef ENABLE_STANDALONE		// No card detected
+//		LED_15693_OFF;
+//#endif
+//	}
+//
+//	TRF79xxA_turnRfOff();						// Turn off RF field once done reading the tag(s)
+//#endif
+//
+//	return STATUS_SUCCESS;
+//}
 
 //*****************************************************************************
 //

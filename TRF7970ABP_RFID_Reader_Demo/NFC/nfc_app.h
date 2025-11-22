@@ -46,8 +46,6 @@
 #include "iso14443b.h"
 #include "iso15693.h"
 #include "felica.h"
-#include "tilelink.h"
-
 //================================================================
 
 #define ENABLE_14443A

@@ -94,7 +94,6 @@
 
 #include "nfc_app.h"
 #include "trf79xxa.h"
-
 //===============================================================
 
 void main(void)
@@ -163,11 +162,11 @@ void main(void)
 
         // 4. Optional LED blink to indicate transmission
         LED_15693_ON;
-        MCU_delayMillisecond(20);
+        MCU_delayMillisecond(1000);
         LED_15693_OFF;
 
         // 5. Delay before next transmission
-        MCU_delayMillisecond(100);
+        MCU_delayMillisecond(1000);
         
         // Keep VLO calibration active
         ui8VLOCalibCount++;

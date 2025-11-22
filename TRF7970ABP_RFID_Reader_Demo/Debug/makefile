@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := C:/ti/ccs2030/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS
+CG_TOOL_ROOT := C:/ti/ccs1040/ccs/tools/compiler/msp430_4.3.3
 
 GEN_OPTS__FLAG := 
 GEN_CMDS__FLAG := 
@@ -136,10 +136,16 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXE_OUTPUTS += \
-TRF7970ABP_RFID_Reader_Demo.out 
+TRF7970ABP_RFID_Reader_Demo.out \
 
 EXE_OUTPUTS__QUOTED += \
-"TRF7970ABP_RFID_Reader_Demo.out" 
+"TRF7970ABP_RFID_Reader_Demo.out" \
+
+BIN_OUTPUTS += \
+TRF7970ABP_RFID_Reader_Demo.hex \
+
+BIN_OUTPUTS__QUOTED += \
+"TRF7970ABP_RFID_Reader_Demo.hex" \
 
 
 # All Target
@@ -149,14 +155,22 @@ all: TRF7970ABP_RFID_Reader_Demo.out
 TRF7970ABP_RFID_Reader_Demo.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: MSP430 Linker'
-	"C:/ti/ccs2030/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/bin/cl430" -vmsp --abi=coffabi -O3 --opt_for_speed=0 -g --define=__MSP430G2553__ --diag_warning=225 --display_error_number --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal -z -m"TRF7970ABP_RFID_Reader_Demo.map" --heap_size=0 --stack_size=250 -i"C:/ti/ccs2030/ccs/ccs_base/msp430/include" -i"C:/ti/ccs2030/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/lib" -i"C:/ti/ccs2030/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include" --reread_libs --warn_sections --xml_link_info="TRF7970ABP_RFID_Reader_Demo_linkInfo.xml" --rom_model -o "TRF7970ABP_RFID_Reader_Demo.out" $(ORDERED_OBJS)
+	"C:/ti/ccs1040/ccs/tools/compiler/msp430_4.3.3/bin/cl430" -vmsp --abi=coffabi -O3 --opt_for_speed=0 -g --define=__MSP430G2553__ --diag_warning=225 --display_error_number --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal -z -m"TRF7970ABP_RFID_Reader_Demo.map" --heap_size=0 --stack_size=250 -i"C:/ti/ccs1040/ccs/ccs_base/msp430/include" -i"C:/ti/ccs1040/ccs/tools/compiler/msp430_4.3.3/lib" -i"C:/ti/ccs1040/ccs/tools/compiler/msp430_4.3.3/include" --reread_libs --warn_sections --xml_link_info="TRF7970ABP_RFID_Reader_Demo_linkInfo.xml" --rom_model -o "TRF7970ABP_RFID_Reader_Demo.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
+	@echo ' '
+	@$(MAKE) --no-print-directory post-build
+
+TRF7970ABP_RFID_Reader_Demo.hex: $(EXE_OUTPUTS)
+	@echo 'Building secondary target: "$@"'
+	@echo 'Invoking: MSP430 Hex Utility'
+	"C:/ti/ccs1040/ccs/tools/compiler/msp430_4.3.3/bin/hex430" --memwidth=8 --romwidth=8 --diag_wrap=off -o "TRF7970ABP_RFID_Reader_Demo.hex" $(EXE_OUTPUTS__QUOTED)
+	@echo 'Finished building secondary target: "$@"'
 	@echo ' '
 	@$(MAKE) --no-print-directory post-build
 
 # Other Targets
 clean:
-	-$(RM) $(EXE_OUTPUTS__QUOTED)
+	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
 	-$(RM) "main.obj" "system_pre_init.obj" "Hardware\VLO_Library.obj" "Hardware\mcu.obj" "Hardware\spi.obj" "Hardware\trf79xxa.obj" "Hardware\uart.obj" "NFC\felica.obj" "NFC\iso14443a.obj" "NFC\iso14443b.obj" "NFC\iso15693.obj" "NFC\ndef.obj" "NFC\nfc_app.obj" 
 	-$(RM) "main.d" "system_pre_init.d" "Hardware\mcu.d" "Hardware\spi.d" "Hardware\trf79xxa.d" "Hardware\uart.d" "NFC\felica.d" "NFC\iso14443a.d" "NFC\iso14443b.d" "NFC\iso15693.d" "NFC\ndef.d" "NFC\nfc_app.d" 
 	-$(RM) "Hardware\VLO_Library.d" 
@@ -165,7 +179,7 @@ clean:
 
 post-build:
 	-@echo 'Create flash image: TI-TXT'
-	-"C:/ti/ccs2030/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/bin/hex430" -i "TRF7970ABP_RFID_Reader_Demo.out" -o "TRF7970ABP_RFID_Reader_Demo.hex" -order MS -romwidth 16
+	-"C:/ti/ccs1040/ccs/tools/compiler/msp430_4.3.3/bin/hex430" -i "TRF7970ABP_RFID_Reader_Demo.out" -o "TRF7970ABP_RFID_Reader_Demo.hex" -order MS -romwidth 16
 	-@echo ' '
 
 .PHONY: all clean dependents
